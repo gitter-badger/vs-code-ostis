@@ -12,6 +12,10 @@ sentence_comment
 sentence
     = sentence_lvl1 { return "sentence_lvl1"; }
 	/ sentence_lvl_common { return "sentence_lvl_common"; }
+    / sentence_assign
+
+sentence_assign
+    = ID_SYSTEM _ '=' _ idtf_common
     
 idtf_lvl1_preffix
 	= 'sc_node'
@@ -30,7 +34,7 @@ idtf_lvl1
 
 idtf_system
 	= ID_SYSTEM
-    / '...' { return "unnamed"; }
+    / '...'
 
 idtf_edge "edge"
 	= '(' idtf_system
@@ -39,7 +43,7 @@ idtf_edge "edge"
 	  ')'
 	
 idtf_set "set"
-	= '{' attr_list? idtf_common (';' attr_list? idtf_common)* '}'
+	= '{' _ attr_list? _ idtf_common (';' _ attr_list? _ idtf_common)* _ '}'
 
 idtf_common
 	= idtf_system
@@ -52,7 +56,7 @@ idtf_list
 	= _ idtf_common _ internal_sentence_list? (_ ';' _ idtf_common _ internal_sentence_list?)*
 
 internal_sentence "internal sentence"
-	= _ connector _ attr_list? idtf_list
+	= _ connector _ attr_list? _ idtf_list
 
 internal_sentence_list
 	= '(*' _ (internal_sentence ';;')+ _ '*)'
@@ -90,7 +94,12 @@ connector "connector"
 
 // ------------------------------------------------
 ID_SYSTEM "system identifier"
-    = _ ([.]+)? ([_]?) [a-zA-Z0-9_]+ _
+    = _ ([.]+)? ([_]?) [a-zA-Z0-9_]+ _ 
+    { 
+        var value = { text: text(), location: location() };
+        options.parsedData._onAppendSymbol(options.docUri, value.text, value.location);
+        return value;
+    }
 
 EDGE_ATTR "edge attribute modifier"
     = (
